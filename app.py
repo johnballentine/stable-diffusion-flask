@@ -1,11 +1,13 @@
 from flask import Flask, Response, render_template, request
-from scripts.txt2img_flask import *
 from base64 import b64encode
 from urllib.parse import quote
 from dotenv import load_dotenv
+from inspect import getfullargspec
+import os
 
 # Local imports
-from models import *
+from models import db, Generation
+from scripts.txt2img_flask import Txt2Img
 
 app = Flask(__name__)
 load_dotenv()
@@ -19,6 +21,16 @@ app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
+
+def get_params(func, exclude_keys=["self"]):
+    spec = getfullargspec(func)
+    padded_defaults = (None,) * (len(spec.args) - len(spec.defaults)) + spec.defaults
+
+    params = dict(zip(spec.args, padded_defaults))
+    for key in exclude_keys:
+        params.pop(key)
+
+    return params
 
 def save_generation(opt, image_data, request_headers="", request_raw=""):
     generation = Generation(
@@ -34,44 +46,30 @@ def save_generation(opt, image_data, request_headers="", request_raw=""):
 
 @app.route('/generate')
 def page_generate():
-    return render_template("generate.html")
+
+    excludes = ['self', 'prompt', 'outdir', 'laion400m',
+                'from_file', 'config', 'ckpt']
+
+    opt = get_params(Txt2Img.__init__, excludes)
+
+    return render_template("generate.html", opt=opt)
 
 @app.route('/txt2img/endpoint', methods=['POST'])
 def page_txt2img_endpoint():
 
     input = request.get_json()
+    """opt = dict(txt2img_opt_defaults)
 
-    opt = {
-        "prompt": input["prompt"],
-        "outdir": "outputs/txt2img-samples",
-        "skip_grid": None,
-        "skip_save": None,
-        "ddim_steps": 50,
-        "plms": True,
-        "laion400m": None,
-        "fixed_code": None,
-        "ddim_eta": 0.0,
-        "n_iter": 1,
-        "H": 512,
-        "W": 512,
-        "C": 4,
-        "f": 8,
-        "n_samples": 1,
-        "n_rows": 0,
-        "scale": 7.5,
-        "from_file": None,
-        "config": "configs/stable-diffusion/v1-inference.yaml",
-        "ckpt": "models/ldm/stable-diffusion-v1/model.ckpt",
-        "seed": 42,
-        "precision": "autocast"
-    }
+    opt["prompt"] = input["prompt"]"""
 
-    print("Generating: "+opt["prompt"])
+    print("Generating: "+input["prompt"])
 
-    image = generate(opt)
+    generation = Txt2Img(input["prompt"])
+
+    image = generation.generate()
     image_data = 'data:image/png;base64,' + quote(b64encode(image.getvalue()).decode('ascii'))
 
-    save_generation(opt=opt,
+    save_generation(opt={"test":"test"},
                     image_data=image_data,
                     request_headers=str(request.headers),
                     request_raw=request.get_data(as_text=True))
