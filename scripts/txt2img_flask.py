@@ -97,9 +97,9 @@ def check_safety(x_image):
     return x_checked_image, has_nsfw_concept
 
 
-def generate(prompt):
-    opt = {
-        "prompt": prompt,
+def generate(opt):
+    """opt = {
+        "prompt": "an astronaut riding a horse",
         "outdir": "outputs/txt2img-samples",
         "skip_grid": None,
         "skip_save": None,
@@ -121,7 +121,9 @@ def generate(prompt):
         "ckpt": "models/ldm/stable-diffusion-v1/model.ckpt",
         "seed": 42,
         "precision": "autocast"
-    }
+    }"""
+
+    prompt = opt['prompt']
 
     if opt["laion400m"]:
         print("Falling back to LAION 400M model...")
