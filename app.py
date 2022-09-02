@@ -43,6 +43,10 @@ def save_generation(opt, image_data, request_headers="", request_raw=""):
 
     return generation
 
+@app.route('/')
+def index():
+    return "Running..."
+
 
 @app.route('/generate')
 def page_generate():
@@ -84,3 +88,7 @@ def gallery():
                   )
 
     return render_template("gallery.html", generations=generations)
+
+
+if __name__ == '__main__':
+   app.run(debug=False, host='0.0.0.0')
