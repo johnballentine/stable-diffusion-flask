@@ -1,6 +1,7 @@
 # stable-diffusion-flask
 models/
 *.sock
+gunicorn.ini
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

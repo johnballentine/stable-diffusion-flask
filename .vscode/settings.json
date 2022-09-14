@@ -1,0 +1,19 @@
+{
+    "task.allowAutomaticTasks": "on",
+
+    // VsCode Action Buttons extension
+    "actionButtons": {
+        "defaultColor": "#ff0034", // Can also use string color names.
+        "loadNpmCommands":false, // Disables automatic generation of actions for npm commands.
+        "reloadButton":null, // Custom reload button text or icon (default ↻). null value enables automatic reload on configuration change
+        "commands": [
+            {
+                "cwd": "/home/jballentine/gitrepos/stable-diffusion-flask", 	// Terminal initial folder ${workspaceFolder} and os user home as defaults
+                "name": "▶ Run Flask",
+                "color": "lightgreen",
+                "singleInstance": false,
+                "command": "conda activate ldm ; python -m flask run --host=216.153.51.165", // This is executed in the terminal.
+            }
+        ]
+    }
+}
