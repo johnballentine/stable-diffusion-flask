@@ -32,6 +32,16 @@ def get_params(func, exclude_keys=["self"]):
 
     return params
 
+# Used for table rows/columns
+def chunk_params(opt, chunks=2):
+    list_temp = [opt] * chunks
+    opt_chunked = []
+    for i, item in enumerate(list_temp):
+        opt_chunked.append(opt[i:i+chunks])
+
+    return opt_chunked
+    
+
 def save_generation(opt, image_data, request_headers="", request_raw=""):
     generation = Generation(
         opt=opt,
@@ -56,7 +66,15 @@ def page_generate():
 
     opt = get_params(Txt2Img.__init__, excludes)
 
-    return render_template("generate.html", opt=opt)
+    opt_chunked = chunk_params(opt)
+
+    print(type(opt_chunked))
+
+    for item in opt_chunked:
+        print(str(item))
+    
+    return render_template("generate.html", opt_chunked=opt_chunked)
+
 
 @app.route('/txt2img/endpoint', methods=['POST'])
 def page_txt2img_endpoint():
@@ -80,6 +98,7 @@ def page_txt2img_endpoint():
 
     return image_data
 
+
 @app.route('/gallery')
 def gallery():
     generations = (Generation.query
@@ -88,6 +107,16 @@ def gallery():
                   )
 
     return render_template("gallery.html", generations=generations)
+
+
+@app.route('/output')
+def output():
+    max_images = 100
+    filenames = os.listdir(os.path.join(app.static_folder, 'outputs/samples'))
+    filenames = sorted(filenames, reverse=True)
+    filenames = filenames[0:max_images]
+
+    return render_template("output.html", filenames=filenames)
 
 
 if __name__ == '__main__':

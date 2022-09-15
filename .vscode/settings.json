@@ -12,7 +12,7 @@
                 "name": "▶ Run Flask",
                 "color": "lightgreen",
                 "singleInstance": false,
-                "command": "conda activate ldm ; python -m flask run --host=216.153.51.165", // This is executed in the terminal.
+                "command": "reset ; conda activate ldm ; python -m flask run --host=216.153.51.165", // This is executed in the terminal.
             }
         ]
     }
