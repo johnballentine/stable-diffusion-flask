@@ -232,7 +232,6 @@ def imsave(img, img_path):
         img = img[:, :, [2, 1, 0]]
     cv2.imwrite(img_path, img)
 
-
 def imwrite(img, img_path):
     img = np.squeeze(img)
     if img.ndim == 3:
@@ -357,7 +356,6 @@ def tensor2single(img):
         img = np.transpose(img, (1, 2, 0))
 
     return img
-
 
 # convert torch tensor to single
 def tensor2single3(img):

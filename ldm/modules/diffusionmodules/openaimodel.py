@@ -24,7 +24,6 @@ from ldm.modules.attention import SpatialTransformer
 def convert_module_to_f16(x):
     pass
 
-
 def convert_module_to_f32(x):
     pass
 

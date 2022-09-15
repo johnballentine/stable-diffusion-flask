@@ -2,7 +2,6 @@ import argparse, os, sys, datetime, glob, importlib, csv
 import numpy as np
 import time
 import torch
-
 import torchvision
 import pytorch_lightning as pl
 

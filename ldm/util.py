@@ -20,6 +20,7 @@ def log_txt_as_img(wh, xc, size=10):
     b = len(xc)
     txts = list()
     for bi in range(b):
+<<<<<<< HEAD
         txt = Image.new('RGB', wh, color='white')
         draw = ImageDraw.Draw(txt)
         font = ImageFont.load_default()
@@ -32,6 +33,18 @@ def log_txt_as_img(wh, xc, size=10):
             draw.text((0, 0), lines, fill='black', font=font)
         except UnicodeEncodeError:
             print('Cant encode string for logging. Skipping.')
+=======
+        txt = Image.new("RGB", wh, color="white")
+        draw = ImageDraw.Draw(txt)
+        font = ImageFont.truetype('data/DejaVuSans.ttf', size=size)
+        nc = int(40 * (wh[0] / 256))
+        lines = "\n".join(xc[bi][start:start + nc] for start in range(0, len(xc[bi]), nc))
+
+        try:
+            draw.text((0, 0), lines, fill="black", font=font)
+        except UnicodeEncodeError:
+            print("Cant encode string for logging. Skipping.")
+>>>>>>> textual-inversion
 
         txt = np.array(txt).transpose(2, 0, 1) / 127.5 - 1.0
         txts.append(txt)
@@ -73,6 +86,7 @@ def mean_flat(tensor):
 def count_params(model, verbose=False):
     total_params = sum(p.numel() for p in model.parameters())
     if verbose:
+<<<<<<< HEAD
         print(
             f'{model.__class__.__name__} has {total_params * 1.e-6:.2f} M params.'
         )
@@ -93,6 +107,24 @@ def instantiate_from_config(config, **kwargs):
 
 def get_obj_from_str(string, reload=False):
     module, cls = string.rsplit('.', 1)
+=======
+        print(f"{model.__class__.__name__} has {total_params * 1.e-6:.2f} M params.")
+    return total_params
+
+
+def instantiate_from_config(config):
+    if not "target" in config:
+        if config == '__is_first_stage__':
+            return None
+        elif config == "__is_unconditional__":
+            return None
+        raise KeyError("Expected key `target` to instantiate.")
+    return get_obj_from_str(config["target"])(**config.get("params", dict()))
+
+
+def get_obj_from_str(string, reload=False):
+    module, cls = string.rsplit(".", 1)
+>>>>>>> textual-inversion
     if reload:
         module_imp = importlib.import_module(module)
         importlib.reload(module_imp)
@@ -108,6 +140,7 @@ def _do_parallel_data_prefetch(func, Q, data, idx, idx_to_fn=False):
     else:
         res = func(data)
     Q.put([idx, res])
+<<<<<<< HEAD
     Q.put('Done')
 
 
@@ -118,26 +151,46 @@ def parallel_data_prefetch(
     target_data_type='ndarray',
     cpu_intensive=True,
     use_worker_id=False,
+=======
+    Q.put("Done")
+
+
+def parallel_data_prefetch(
+        func: callable, data, n_proc, target_data_type="ndarray", cpu_intensive=True, use_worker_id=False
+>>>>>>> textual-inversion
 ):
     # if target_data_type not in ["ndarray", "list"]:
     #     raise ValueError(
     #         "Data, which is passed to parallel_data_prefetch has to be either of type list or ndarray."
     #     )
+<<<<<<< HEAD
     if isinstance(data, np.ndarray) and target_data_type == 'list':
         raise ValueError('list expected but function got ndarray.')
+=======
+    if isinstance(data, np.ndarray) and target_data_type == "list":
+        raise ValueError("list expected but function got ndarray.")
+>>>>>>> textual-inversion
     elif isinstance(data, abc.Iterable):
         if isinstance(data, dict):
             print(
                 f'WARNING:"data" argument passed to parallel_data_prefetch is a dict: Using only its values and disregarding keys.'
             )
             data = list(data.values())
+<<<<<<< HEAD
         if target_data_type == 'ndarray':
+=======
+        if target_data_type == "ndarray":
+>>>>>>> textual-inversion
             data = np.asarray(data)
         else:
             data = list(data)
     else:
         raise TypeError(
+<<<<<<< HEAD
             f'The data, that shall be processed parallel has to be either an np.ndarray or an Iterable, but is actually {type(data)}.'
+=======
+            f"The data, that shall be processed parallel has to be either an np.ndarray or an Iterable, but is actually {type(data)}."
+>>>>>>> textual-inversion
         )
 
     if cpu_intensive:
@@ -147,7 +200,11 @@ def parallel_data_prefetch(
         Q = Queue(1000)
         proc = Thread
     # spawn processes
+<<<<<<< HEAD
     if target_data_type == 'ndarray':
+=======
+    if target_data_type == "ndarray":
+>>>>>>> textual-inversion
         arguments = [
             [func, Q, part, i, use_worker_id]
             for i, part in enumerate(np.array_split(data, n_proc))
@@ -161,7 +218,11 @@ def parallel_data_prefetch(
         arguments = [
             [func, Q, part, i, use_worker_id]
             for i, part in enumerate(
+<<<<<<< HEAD
                 [data[i : i + step] for i in range(0, len(data), step)]
+=======
+                [data[i: i + step] for i in range(0, len(data), step)]
+>>>>>>> textual-inversion
             )
         ]
     processes = []
@@ -170,7 +231,11 @@ def parallel_data_prefetch(
         processes += [p]
 
     # start processes
+<<<<<<< HEAD
     print(f'Start prefetching...')
+=======
+    print(f"Start prefetching...")
+>>>>>>> textual-inversion
     import time
 
     start = time.time()
@@ -183,13 +248,21 @@ def parallel_data_prefetch(
         while k < n_proc:
             # get result
             res = Q.get()
+<<<<<<< HEAD
             if res == 'Done':
+=======
+            if res == "Done":
+>>>>>>> textual-inversion
                 k += 1
             else:
                 gather_res[res[0]] = res[1]
 
     except Exception as e:
+<<<<<<< HEAD
         print('Exception: ', e)
+=======
+        print("Exception: ", e)
+>>>>>>> textual-inversion
         for p in processes:
             p.terminate()
 
@@ -197,7 +270,11 @@ def parallel_data_prefetch(
     finally:
         for p in processes:
             p.join()
+<<<<<<< HEAD
         print(f'Prefetching complete. [{time.time() - start} sec.]')
+=======
+        print(f"Prefetching complete. [{time.time() - start} sec.]")
+>>>>>>> textual-inversion
 
     if target_data_type == 'ndarray':
         if not isinstance(gather_res[0], np.ndarray):

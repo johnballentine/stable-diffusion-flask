@@ -11,6 +11,7 @@ from einops import rearrange, repeat, reduce
 
 DEFAULT_DIM_HEAD = 64
 
+<<<<<<< HEAD
 Intermediates = namedtuple(
     'Intermediates', ['pre_softmax_attn', 'post_softmax_attn']
 )
@@ -18,6 +19,17 @@ Intermediates = namedtuple(
 LayerIntermediates = namedtuple(
     'Intermediates', ['hiddens', 'attn_intermediates']
 )
+=======
+Intermediates = namedtuple('Intermediates', [
+    'pre_softmax_attn',
+    'post_softmax_attn'
+])
+
+LayerIntermediates = namedtuple('Intermediates', [
+    'hiddens',
+    'attn_intermediates'
+])
+>>>>>>> textual-inversion
 
 
 class AbsolutePositionalEmbedding(nn.Module):
@@ -37,6 +49,7 @@ class AbsolutePositionalEmbedding(nn.Module):
 class FixedPositionalEmbedding(nn.Module):
     def __init__(self, dim):
         super().__init__()
+<<<<<<< HEAD
         inv_freq = 1.0 / (10000 ** (torch.arange(0, dim, 2).float() / dim))
         self.register_buffer('inv_freq', inv_freq)
 
@@ -47,6 +60,13 @@ class FixedPositionalEmbedding(nn.Module):
             )
             + offset
         )
+=======
+        inv_freq = 1. / (10000 ** (torch.arange(0, dim, 2).float() / dim))
+        self.register_buffer('inv_freq', inv_freq)
+
+    def forward(self, x, seq_dim=1, offset=0):
+        t = torch.arange(x.shape[seq_dim], device=x.device).type_as(self.inv_freq) + offset
+>>>>>>> textual-inversion
         sinusoid_inp = torch.einsum('i , j -> i j', t, self.inv_freq)
         emb = torch.cat((sinusoid_inp.sin(), sinusoid_inp.cos()), dim=-1)
         return emb[None, :, :]
@@ -54,7 +74,10 @@ class FixedPositionalEmbedding(nn.Module):
 
 # helpers
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> textual-inversion
 def exists(val):
     return val is not None
 
@@ -68,21 +91,30 @@ def default(val, d):
 def always(val):
     def inner(*args, **kwargs):
         return val
+<<<<<<< HEAD
 
+=======
+>>>>>>> textual-inversion
     return inner
 
 
 def not_equals(val):
     def inner(x):
         return x != val
+<<<<<<< HEAD
 
+=======
+>>>>>>> textual-inversion
     return inner
 
 
 def equals(val):
     def inner(x):
         return x == val
+<<<<<<< HEAD
 
+=======
+>>>>>>> textual-inversion
     return inner
 
 
@@ -92,7 +124,10 @@ def max_neg_value(tensor):
 
 # keyword argument helpers
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> textual-inversion
 def pick_and_pop(keys, d):
     values = list(map(lambda key: d.pop(key), keys))
     return dict(zip(keys, values))
@@ -116,6 +151,7 @@ def group_by_key_prefix(prefix, d):
 
 
 def groupby_prefix_and_trim(prefix, d):
+<<<<<<< HEAD
     kwargs_with_prefix, kwargs = group_dict_by_key(
         partial(string_begins_with, prefix), d
     )
@@ -125,6 +161,10 @@ def groupby_prefix_and_trim(prefix, d):
             tuple(kwargs_with_prefix.items()),
         )
     )
+=======
+    kwargs_with_prefix, kwargs = group_dict_by_key(partial(string_begins_with, prefix), d)
+    kwargs_without_prefix = dict(map(lambda x: (x[0][len(prefix):], x[1]), tuple(kwargs_with_prefix.items())))
+>>>>>>> textual-inversion
     return kwargs_without_prefix, kwargs
 
 
@@ -154,7 +194,11 @@ class Rezero(nn.Module):
 class ScaleNorm(nn.Module):
     def __init__(self, dim, eps=1e-5):
         super().__init__()
+<<<<<<< HEAD
         self.scale = dim**-0.5
+=======
+        self.scale = dim ** -0.5
+>>>>>>> textual-inversion
         self.eps = eps
         self.g = nn.Parameter(torch.ones(1))
 
@@ -166,7 +210,11 @@ class ScaleNorm(nn.Module):
 class RMSNorm(nn.Module):
     def __init__(self, dim, eps=1e-8):
         super().__init__()
+<<<<<<< HEAD
         self.scale = dim**-0.5
+=======
+        self.scale = dim ** -0.5
+>>>>>>> textual-inversion
         self.eps = eps
         self.g = nn.Parameter(torch.ones(dim))
 
@@ -188,7 +236,11 @@ class GRUGating(nn.Module):
     def forward(self, x, residual):
         gated_output = self.gru(
             rearrange(x, 'b n d -> (b n) d'),
+<<<<<<< HEAD
             rearrange(residual, 'b n d -> (b n) d'),
+=======
+            rearrange(residual, 'b n d -> (b n) d')
+>>>>>>> textual-inversion
         )
 
         return gated_output.reshape_as(x)
@@ -196,7 +248,10 @@ class GRUGating(nn.Module):
 
 # feedforward
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> textual-inversion
 class GEGLU(nn.Module):
     def __init__(self, dim_in, dim_out):
         super().__init__()
@@ -208,6 +263,7 @@ class GEGLU(nn.Module):
 
 
 class FeedForward(nn.Module):
+<<<<<<< HEAD
     def __init__(self, dim, dim_out=None, mult=4, glu=False, dropout=0.0):
         super().__init__()
         inner_dim = int(dim * mult)
@@ -220,6 +276,21 @@ class FeedForward(nn.Module):
 
         self.net = nn.Sequential(
             project_in, nn.Dropout(dropout), nn.Linear(inner_dim, dim_out)
+=======
+    def __init__(self, dim, dim_out=None, mult=4, glu=False, dropout=0.):
+        super().__init__()
+        inner_dim = int(dim * mult)
+        dim_out = default(dim_out, dim)
+        project_in = nn.Sequential(
+            nn.Linear(dim, inner_dim),
+            nn.GELU()
+        ) if not glu else GEGLU(dim, inner_dim)
+
+        self.net = nn.Sequential(
+            project_in,
+            nn.Dropout(dropout),
+            nn.Linear(inner_dim, dim_out)
+>>>>>>> textual-inversion
         )
 
     def forward(self, x):
@@ -229,6 +300,7 @@ class FeedForward(nn.Module):
 # attention.
 class Attention(nn.Module):
     def __init__(
+<<<<<<< HEAD
         self,
         dim,
         dim_head=DEFAULT_DIM_HEAD,
@@ -248,6 +320,25 @@ class Attention(nn.Module):
                 'Check out entmax activation instead of softmax activation!'
             )
         self.scale = dim_head**-0.5
+=======
+            self,
+            dim,
+            dim_head=DEFAULT_DIM_HEAD,
+            heads=8,
+            causal=False,
+            mask=None,
+            talking_heads=False,
+            sparse_topk=None,
+            use_entmax15=False,
+            num_mem_kv=0,
+            dropout=0.,
+            on_attn=False
+    ):
+        super().__init__()
+        if use_entmax15:
+            raise NotImplementedError("Check out entmax activation instead of softmax activation!")
+        self.scale = dim_head ** -0.5
+>>>>>>> textual-inversion
         self.heads = heads
         self.causal = causal
         self.mask = mask
@@ -269,7 +360,11 @@ class Attention(nn.Module):
         self.sparse_topk = sparse_topk
 
         # entmax
+<<<<<<< HEAD
         # self.attn_fn = entmax15 if use_entmax15 else F.softmax
+=======
+        #self.attn_fn = entmax15 if use_entmax15 else F.softmax
+>>>>>>> textual-inversion
         self.attn_fn = F.softmax
 
         # add memory key / values
@@ -280,6 +375,7 @@ class Attention(nn.Module):
 
         # attention on attention
         self.attn_on_attn = on_attn
+<<<<<<< HEAD
         self.to_out = (
             nn.Sequential(nn.Linear(inner_dim, dim * 2), nn.GLU())
             if on_attn
@@ -303,6 +399,22 @@ class Attention(nn.Module):
             self.talking_heads,
             x.device,
         )
+=======
+        self.to_out = nn.Sequential(nn.Linear(inner_dim, dim * 2), nn.GLU()) if on_attn else nn.Linear(inner_dim, dim)
+
+    def forward(
+            self,
+            x,
+            context=None,
+            mask=None,
+            context_mask=None,
+            rel_pos=None,
+            sinusoidal_emb=None,
+            prev_attn=None,
+            mem=None
+    ):
+        b, n, _, h, talking_heads, device = *x.shape, self.heads, self.talking_heads, x.device
+>>>>>>> textual-inversion
         kv_input = default(context, x)
 
         q_input = x
@@ -323,6 +435,7 @@ class Attention(nn.Module):
         k = self.to_k(k_input)
         v = self.to_v(v_input)
 
+<<<<<<< HEAD
         q, k, v = map(
             lambda t: rearrange(t, 'b n (h d) -> b h n d', h=h), (q, k, v)
         )
@@ -337,11 +450,21 @@ class Attention(nn.Module):
                 k_mask,
                 lambda: torch.ones((b, k.shape[-2]), device=device).bool(),
             )
+=======
+        q, k, v = map(lambda t: rearrange(t, 'b n (h d) -> b h n d', h=h), (q, k, v))
+
+        input_mask = None
+        if any(map(exists, (mask, context_mask))):
+            q_mask = default(mask, lambda: torch.ones((b, n), device=device).bool())
+            k_mask = q_mask if not exists(context) else context_mask
+            k_mask = default(k_mask, lambda: torch.ones((b, k.shape[-2]), device=device).bool())
+>>>>>>> textual-inversion
             q_mask = rearrange(q_mask, 'b i -> b () i ()')
             k_mask = rearrange(k_mask, 'b j -> b () () j')
             input_mask = q_mask * k_mask
 
         if self.num_mem_kv > 0:
+<<<<<<< HEAD
             mem_k, mem_v = map(
                 lambda t: repeat(t, 'h n d -> b h n d', b=b),
                 (self.mem_k, self.mem_v),
@@ -352,6 +475,13 @@ class Attention(nn.Module):
                 input_mask = F.pad(
                     input_mask, (self.num_mem_kv, 0), value=True
                 )
+=======
+            mem_k, mem_v = map(lambda t: repeat(t, 'h n d -> b h n d', b=b), (self.mem_k, self.mem_v))
+            k = torch.cat((mem_k, k), dim=-2)
+            v = torch.cat((mem_v, v), dim=-2)
+            if exists(input_mask):
+                input_mask = F.pad(input_mask, (self.num_mem_kv, 0), value=True)
+>>>>>>> textual-inversion
 
         dots = einsum('b h i d, b h j d -> b h i j', q, k) * self.scale
         mask_value = max_neg_value(dots)
@@ -362,9 +492,13 @@ class Attention(nn.Module):
         pre_softmax_attn = dots
 
         if talking_heads:
+<<<<<<< HEAD
             dots = einsum(
                 'b h i j, h k -> b k i j', dots, self.pre_softmax_proj
             ).contiguous()
+=======
+            dots = einsum('b h i j, h k -> b k i j', dots, self.pre_softmax_proj).contiguous()
+>>>>>>> textual-inversion
 
         if exists(rel_pos):
             dots = rel_pos(dots)
@@ -376,9 +510,13 @@ class Attention(nn.Module):
         if self.causal:
             i, j = dots.shape[-2:]
             r = torch.arange(i, device=device)
+<<<<<<< HEAD
             mask = rearrange(r, 'i -> () () i ()') < rearrange(
                 r, 'j -> () () () j'
             )
+=======
+            mask = rearrange(r, 'i -> () () i ()') < rearrange(r, 'j -> () () () j')
+>>>>>>> textual-inversion
             mask = F.pad(mask, (j - i, 0), value=False)
             dots.masked_fill_(mask, mask_value)
             del mask
@@ -396,16 +534,24 @@ class Attention(nn.Module):
         attn = self.dropout(attn)
 
         if talking_heads:
+<<<<<<< HEAD
             attn = einsum(
                 'b h i j, h k -> b k i j', attn, self.post_softmax_proj
             ).contiguous()
+=======
+            attn = einsum('b h i j, h k -> b k i j', attn, self.post_softmax_proj).contiguous()
+>>>>>>> textual-inversion
 
         out = einsum('b h i j, b h j d -> b h i d', attn, v)
         out = rearrange(out, 'b h n d -> b n (h d)')
 
         intermediates = Intermediates(
             pre_softmax_attn=pre_softmax_attn,
+<<<<<<< HEAD
             post_softmax_attn=post_softmax_attn,
+=======
+            post_softmax_attn=post_softmax_attn
+>>>>>>> textual-inversion
         )
 
         return self.to_out(out), intermediates
@@ -413,6 +559,7 @@ class Attention(nn.Module):
 
 class AttentionLayers(nn.Module):
     def __init__(
+<<<<<<< HEAD
         self,
         dim,
         depth,
@@ -435,6 +582,30 @@ class AttentionLayers(nn.Module):
         pre_norm=True,
         gate_residual=False,
         **kwargs,
+=======
+            self,
+            dim,
+            depth,
+            heads=8,
+            causal=False,
+            cross_attend=False,
+            only_cross=False,
+            use_scalenorm=False,
+            use_rmsnorm=False,
+            use_rezero=False,
+            rel_pos_num_buckets=32,
+            rel_pos_max_distance=128,
+            position_infused_attn=False,
+            custom_layers=None,
+            sandwich_coef=None,
+            par_ratio=None,
+            residual_attn=False,
+            cross_residual_attn=False,
+            macaron=False,
+            pre_norm=True,
+            gate_residual=False,
+            **kwargs
+>>>>>>> textual-inversion
     ):
         super().__init__()
         ff_kwargs, kwargs = groupby_prefix_and_trim('ff_', kwargs)
@@ -447,6 +618,7 @@ class AttentionLayers(nn.Module):
         self.layers = nn.ModuleList([])
 
         self.has_pos_emb = position_infused_attn
+<<<<<<< HEAD
         self.pia_pos_emb = (
             FixedPositionalEmbedding(dim) if position_infused_attn else None
         )
@@ -455,6 +627,12 @@ class AttentionLayers(nn.Module):
         assert (
             rel_pos_num_buckets <= rel_pos_max_distance
         ), 'number of relative position buckets must be less than the relative position max distance'
+=======
+        self.pia_pos_emb = FixedPositionalEmbedding(dim) if position_infused_attn else None
+        self.rotary_pos_emb = always(None)
+
+        assert rel_pos_num_buckets <= rel_pos_max_distance, 'number of relative position buckets must be less than the relative position max distance'
+>>>>>>> textual-inversion
         self.rel_pos = None
 
         self.pre_norm = pre_norm
@@ -486,6 +664,7 @@ class AttentionLayers(nn.Module):
             assert 1 < par_ratio <= par_depth, 'par ratio out of range'
             default_block = tuple(filter(not_equals('f'), default_block))
             par_attn = par_depth // par_ratio
+<<<<<<< HEAD
             depth_cut = (
                 par_depth * 2 // 3
             )  # 2 / 3 attention layer cutoff suggested by PAR paper
@@ -507,6 +686,17 @@ class AttentionLayers(nn.Module):
                 + default_block * (depth - sandwich_coef)
                 + ('f',) * sandwich_coef
             )
+=======
+            depth_cut = par_depth * 2 // 3  # 2 / 3 attention layer cutoff suggested by PAR paper
+            par_width = (depth_cut + depth_cut // par_attn) // par_attn
+            assert len(default_block) <= par_width, 'default block is too large for par_ratio'
+            par_block = default_block + ('f',) * (par_width - len(default_block))
+            par_head = par_block * par_attn
+            layer_types = par_head + ('f',) * (par_depth - len(par_head))
+        elif exists(sandwich_coef):
+            assert sandwich_coef > 0 and sandwich_coef <= depth, 'sandwich coefficient should be less than the depth'
+            layer_types = ('a',) * sandwich_coef + default_block * (depth - sandwich_coef) + ('f',) * sandwich_coef
+>>>>>>> textual-inversion
         else:
             layer_types = default_block * depth
 
@@ -515,9 +705,13 @@ class AttentionLayers(nn.Module):
 
         for layer_type in self.layer_types:
             if layer_type == 'a':
+<<<<<<< HEAD
                 layer = Attention(
                     dim, heads=heads, causal=causal, **attn_kwargs
                 )
+=======
+                layer = Attention(dim, heads=heads, causal=causal, **attn_kwargs)
+>>>>>>> textual-inversion
             elif layer_type == 'c':
                 layer = Attention(dim, heads=heads, **attn_kwargs)
             elif layer_type == 'f':
@@ -534,6 +728,7 @@ class AttentionLayers(nn.Module):
             else:
                 residual_fn = Residual()
 
+<<<<<<< HEAD
             self.layers.append(nn.ModuleList([norm_fn(), layer, residual_fn]))
 
     def forward(
@@ -545,6 +740,22 @@ class AttentionLayers(nn.Module):
         mems=None,
         return_hiddens=False,
         **kwargs,
+=======
+            self.layers.append(nn.ModuleList([
+                norm_fn(),
+                layer,
+                residual_fn
+            ]))
+
+    def forward(
+            self,
+            x,
+            context=None,
+            mask=None,
+            context_mask=None,
+            mems=None,
+            return_hiddens=False
+>>>>>>> textual-inversion
     ):
         hiddens = []
         intermediates = []
@@ -553,9 +764,13 @@ class AttentionLayers(nn.Module):
 
         mems = mems.copy() if exists(mems) else [None] * self.num_attn_layers
 
+<<<<<<< HEAD
         for ind, (layer_type, (norm, block, residual_fn)) in enumerate(
             zip(self.layer_types, self.layers)
         ):
+=======
+        for ind, (layer_type, (norm, block, residual_fn)) in enumerate(zip(self.layer_types, self.layers)):
+>>>>>>> textual-inversion
             is_last = ind == (len(self.layers) - 1)
 
             if layer_type == 'a':
@@ -568,6 +783,7 @@ class AttentionLayers(nn.Module):
                 x = norm(x)
 
             if layer_type == 'a':
+<<<<<<< HEAD
                 out, inter = block(
                     x,
                     mask=mask,
@@ -584,6 +800,12 @@ class AttentionLayers(nn.Module):
                     context_mask=context_mask,
                     prev_attn=prev_cross_attn,
                 )
+=======
+                out, inter = block(x, mask=mask, sinusoidal_emb=self.pia_pos_emb, rel_pos=self.rel_pos,
+                                   prev_attn=prev_attn, mem=layer_mem)
+            elif layer_type == 'c':
+                out, inter = block(x, context=context, mask=mask, context_mask=context_mask, prev_attn=prev_cross_attn)
+>>>>>>> textual-inversion
             elif layer_type == 'f':
                 out = block(x)
 
@@ -602,7 +824,12 @@ class AttentionLayers(nn.Module):
 
         if return_hiddens:
             intermediates = LayerIntermediates(
+<<<<<<< HEAD
                 hiddens=hiddens, attn_intermediates=intermediates
+=======
+                hiddens=hiddens,
+                attn_intermediates=intermediates
+>>>>>>> textual-inversion
             )
 
             return x, intermediates
@@ -616,6 +843,7 @@ class Encoder(AttentionLayers):
         super().__init__(causal=False, **kwargs)
 
 
+<<<<<<< HEAD
 class TransformerWrapper(nn.Module):
     def __init__(
         self,
@@ -634,6 +862,25 @@ class TransformerWrapper(nn.Module):
         assert isinstance(
             attn_layers, AttentionLayers
         ), 'attention layers must be one of Encoder or Decoder'
+=======
+
+class TransformerWrapper(nn.Module):
+    def __init__(
+            self,
+            *,
+            num_tokens,
+            max_seq_len,
+            attn_layers,
+            emb_dim=None,
+            max_mem_len=0.,
+            emb_dropout=0.,
+            num_memory_tokens=None,
+            tie_embedding=False,
+            use_pos_emb=True
+    ):
+        super().__init__()
+        assert isinstance(attn_layers, AttentionLayers), 'attention layers must be one of Encoder or Decoder'
+>>>>>>> textual-inversion
 
         dim = attn_layers.dim
         emb_dim = default(emb_dim, dim)
@@ -643,6 +890,7 @@ class TransformerWrapper(nn.Module):
         self.num_tokens = num_tokens
 
         self.token_emb = nn.Embedding(num_tokens, emb_dim)
+<<<<<<< HEAD
         self.pos_emb = (
             AbsolutePositionalEmbedding(emb_dim, max_seq_len)
             if (use_pos_emb and not attn_layers.has_pos_emb)
@@ -653,24 +901,39 @@ class TransformerWrapper(nn.Module):
         self.project_emb = (
             nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
         )
+=======
+        self.pos_emb = AbsolutePositionalEmbedding(emb_dim, max_seq_len) if (
+                    use_pos_emb and not attn_layers.has_pos_emb) else always(0)
+        self.emb_dropout = nn.Dropout(emb_dropout)
+
+        self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
+>>>>>>> textual-inversion
         self.attn_layers = attn_layers
         self.norm = nn.LayerNorm(dim)
 
         self.init_()
 
+<<<<<<< HEAD
         self.to_logits = (
             nn.Linear(dim, num_tokens)
             if not tie_embedding
             else lambda t: t @ self.token_emb.weight.t()
         )
+=======
+        self.to_logits = nn.Linear(dim, num_tokens) if not tie_embedding else lambda t: t @ self.token_emb.weight.t()
+>>>>>>> textual-inversion
 
         # memory tokens (like [cls]) from Memory Transformers paper
         num_memory_tokens = default(num_memory_tokens, 0)
         self.num_memory_tokens = num_memory_tokens
         if num_memory_tokens > 0:
+<<<<<<< HEAD
             self.memory_tokens = nn.Parameter(
                 torch.randn(num_memory_tokens, dim)
             )
+=======
+            self.memory_tokens = nn.Parameter(torch.randn(num_memory_tokens, dim))
+>>>>>>> textual-inversion
 
             # let funnel encoder know number of memory tokens, if specified
             if hasattr(attn_layers, 'num_memory_tokens'):
@@ -680,6 +943,7 @@ class TransformerWrapper(nn.Module):
         nn.init.normal_(self.token_emb.weight, std=0.02)
 
     def forward(
+<<<<<<< HEAD
         self,
         x,
         return_embeddings=False,
@@ -700,6 +964,20 @@ class TransformerWrapper(nn.Module):
             x = embedded_x
 
         x = x + self.pos_emb(x)
+=======
+            self,
+            x,
+            return_embeddings=False,
+            mask=None,
+            return_mems=False,
+            return_attn=False,
+            mems=None,
+            **kwargs
+    ):
+        b, n, device, num_mem = *x.shape, x.device, self.num_memory_tokens
+        x = self.token_emb(x)
+        x += self.pos_emb(x)
+>>>>>>> textual-inversion
         x = self.emb_dropout(x)
 
         x = self.project_emb(x)
@@ -712,9 +990,13 @@ class TransformerWrapper(nn.Module):
             if exists(mask):
                 mask = F.pad(mask, (num_mem, 0), value=True)
 
+<<<<<<< HEAD
         x, intermediates = self.attn_layers(
             x, mask=mask, mems=mems, return_hiddens=True, **kwargs
         )
+=======
+        x, intermediates = self.attn_layers(x, mask=mask, mems=mems, return_hiddens=True, **kwargs)
+>>>>>>> textual-inversion
         x = self.norm(x)
 
         mem, x = x[:, :num_mem], x[:, num_mem:]
@@ -723,6 +1005,7 @@ class TransformerWrapper(nn.Module):
 
         if return_mems:
             hiddens = intermediates.hiddens
+<<<<<<< HEAD
             new_mems = (
                 list(
                     map(
@@ -750,3 +1033,15 @@ class TransformerWrapper(nn.Module):
             return out, attn_maps
 
         return out
+=======
+            new_mems = list(map(lambda pair: torch.cat(pair, dim=-2), zip(mems, hiddens))) if exists(mems) else hiddens
+            new_mems = list(map(lambda t: t[..., -self.max_mem_len:, :].detach(), new_mems))
+            return out, new_mems
+
+        if return_attn:
+            attn_maps = list(map(lambda t: t.post_softmax_attn, intermediates.attn_intermediates))
+            return out, attn_maps
+
+        return out
+
+>>>>>>> textual-inversion
