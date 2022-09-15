@@ -30,7 +30,6 @@ class DiagonalGaussianDistribution(object):
         self.std = torch.exp(0.5 * self.logvar)
         self.var = torch.exp(self.logvar)
         if self.deterministic:
-<<<<<<< HEAD
             self.var = self.std = torch.zeros_like(self.mean).to(
                 device=self.parameters.device
             )
@@ -39,17 +38,10 @@ class DiagonalGaussianDistribution(object):
         x = self.mean + self.std * torch.randn(self.mean.shape).to(
             device=self.parameters.device
         )
-=======
-            self.var = self.std = torch.zeros_like(self.mean).to(device=self.parameters.device)
-
-    def sample(self):
-        x = self.mean + self.std * torch.randn(self.mean.shape).to(device=self.parameters.device)
->>>>>>> textual-inversion
         return x
 
     def kl(self, other=None):
         if self.deterministic:
-<<<<<<< HEAD
             return torch.Tensor([0.0])
         else:
             if other is None:
@@ -77,27 +69,6 @@ class DiagonalGaussianDistribution(object):
             + torch.pow(sample - self.mean, 2) / self.var,
             dim=dims,
         )
-=======
-            return torch.Tensor([0.])
-        else:
-            if other is None:
-                return 0.5 * torch.sum(torch.pow(self.mean, 2)
-                                       + self.var - 1.0 - self.logvar,
-                                       dim=[1, 2, 3])
-            else:
-                return 0.5 * torch.sum(
-                    torch.pow(self.mean - other.mean, 2) / other.var
-                    + self.var / other.var - 1.0 - self.logvar + other.logvar,
-                    dim=[1, 2, 3])
-
-    def nll(self, sample, dims=[1,2,3]):
-        if self.deterministic:
-            return torch.Tensor([0.])
-        logtwopi = np.log(2.0 * np.pi)
-        return 0.5 * torch.sum(
-            logtwopi + self.logvar + torch.pow(sample - self.mean, 2) / self.var,
-            dim=dims)
->>>>>>> textual-inversion
 
     def mode(self):
         return self.mean
@@ -115,11 +86,7 @@ def normal_kl(mean1, logvar1, mean2, logvar2):
         if isinstance(obj, torch.Tensor):
             tensor = obj
             break
-<<<<<<< HEAD
     assert tensor is not None, 'at least one argument must be a Tensor'
-=======
-    assert tensor is not None, "at least one argument must be a Tensor"
->>>>>>> textual-inversion
 
     # Force variances to be Tensors. Broadcasting helps convert scalars to
     # Tensors, but it does not work for torch.exp().
