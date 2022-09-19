@@ -54,6 +54,7 @@ class FixedPositionalEmbedding(nn.Module):
 
 # helpers
 
+
 def exists(val):
     return val is not None
 
@@ -67,18 +68,21 @@ def default(val, d):
 def always(val):
     def inner(*args, **kwargs):
         return val
+
     return inner
 
 
 def not_equals(val):
     def inner(x):
         return x != val
+
     return inner
 
 
 def equals(val):
     def inner(x):
         return x == val
+
     return inner
 
 
@@ -87,6 +91,7 @@ def max_neg_value(tensor):
 
 
 # keyword argument helpers
+
 
 def pick_and_pop(keys, d):
     values = list(map(lambda key: d.pop(key), keys))
@@ -190,6 +195,7 @@ class GRUGating(nn.Module):
 
 
 # feedforward
+
 
 class GEGLU(nn.Module):
     def __init__(self, dim_in, dim_out):
